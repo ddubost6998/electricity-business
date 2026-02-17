@@ -1,49 +1,33 @@
+version: '3.8'
+
 services:
-  # Service MySQL
-  mysql-db:
-    image: mysql:8.4
-    container_name: eb-mysql-container # Nom du conteneur
-    environment: # Variables d'environnement pour configurer MySQL à l'intérieur du conteneur
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD} # Modifier pour la production
-      MYSQL_DATABASE: ${MYSQL_DATABASE} # Nom de la base de données qui sera créée
-      MYSQL_USER: ${MYSQL_USER} # Nom d'utilisateur pour la connexion de votre application Spring Boot
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD} # Mot de passe pour l'utilisateur de l'application
+
+  mysql:
+    image: mysql:8.0
+    container_name: eb_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: electricity_business
+      MYSQL_USER: eb_user
+      MYSQL_PASSWORD: eb_password
     ports:
-      - "3306:3306" # Mappe le port 3306 de la machine hôte au port 3306 du conteneur MySQL
-                    # Cela permet d'accéder à la BDD depuis la machine locale (DBeaver, IntelliJ DB tools)
+      - "3306:3306"
     volumes:
-      - mysql-data:/var/lib/mysql # Volume persistant pour les données de la base de données
-                                  # Les données ne seront pas perdues si le conteneur est recréé
-    healthcheck: # Vérification de santé pour s'assurer que la base de données est prête et fonctionnelle
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"] # Commande pour vérifier l'état de MySQL
-      timeout: 20s # Temps maximum pour l'exécution de la commande de test
-      retries: 10 # Nombre de tentatives avant de marquer le service comme "unhealthy"
-      start_period: 30s # Temps d'attente initial avant de commencer les vérifications
-    restart: always # Redémarre le conteneur automatiquement en cas d'arrêt ou de panne
+      - mysql_data:/var/lib/mysql
 
-  # Service Spring Boot
-  spring-app:
-    build: . # Construction l'image avec Dockerfile
-    container_name: eb-springboot-container # Nom du conteneur
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: eb_phpmyadmin
+    restart: always
     ports:
-      - "8080:8080" # Mappe le port 8080 de la machine hôte au port 8080 du conteneur Spring Boot
-                    # Angular accédera à ce port pour le backend
-    environment: # Variables d'environnement qui remplace les valeurs dans application.properties
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/electricity_business?useSSL=false&serverTimezone=UTC
-      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
-      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
-
-      JWT_SECRET: ${JWT_SECRET}
-
-      # Configuration de l'e-mail
-      MAIL_HOST: ${MAIL_HOST}
-      MAIL_USERNAME: ${MAIL_USERNAME}
-      MAIL_PASSWORD: ${MAIL_PASSWORD}
-
-    depends_on: # Indique que 'spring-app' dépend de 'mysql-db'
-      mysql-db:
-        condition: service_healthy # Attend que le healthcheck de mysql-db soit réussi avant de démarrer spring-app
-    restart: always # Redémarre le conteneur en cas de plantage
+      - "8081:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: eb_user
+      PMA_PASSWORD: eb_password
+    depends_on:
+      - mysql
 
 volumes:
-  mysql-data:
+  mysql_data:
