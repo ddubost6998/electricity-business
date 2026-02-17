@@ -58,8 +58,8 @@ Modifier `src/main/resources/application.yml` selon vos besoins :
 spring:
   datasource:
     url: jdbc:mysql://localhost:3306/electricity_business
-    username: root
-    password: root
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: update
@@ -115,6 +115,24 @@ Les contributions sont les bienvenues !
 3. Commit (`git commit -m 'Ajout nouvelle feature'`)
 4. Push (`git push origin feature/nouvelle-feature`)
 5. Ouvrir un Pull Request 
+
+## 🐳 Déploiement avec Docker
+
+L’application peut être lancée avec Docker Compose :
+
+docker-compose up --build
+
+Services :
+- Backend Spring Boot
+- MySQL
+- phpMyAdmin
+
+## 🔄 Intégration Continue
+
+Un pipeline GitHub Actions :
+- Compile le projet
+- Exécute les tests
+- Vérifie l’intégrité du build
 
 ## 📜 License
 Ce projet est distribué sous la licence MIT.  
